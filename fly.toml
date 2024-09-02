@@ -1,0 +1,27 @@
+# fly.toml app configuration file generated on 2024-02-19T23:22:29Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+# Change COOL_REGISTRY_FLY_NAME variable to your fly app name
+app = "$COOL_REGISTRY_FLY_NAME"
+primary_region = 'cdg'
+
+[build]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source="registry_data"
+  destination="/app_data"
