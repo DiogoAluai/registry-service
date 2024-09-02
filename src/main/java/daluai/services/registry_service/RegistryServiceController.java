@@ -28,7 +28,6 @@ import static daluai.lib.registry_api.Service.RELAYED_SERVICE_SUFFIX;
 
 /**
  * Registry.
- * <p/>
  * Relay aware registry, for fetching and storing Services' information, such as type and url.
  */
 @RestController
