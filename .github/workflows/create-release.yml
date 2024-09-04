@@ -1,0 +1,129 @@
+#
+# On development branch push, the release will be updated/created based on its existence.
+# Current known issues:
+#   - Sources zip are only updated when tag release is being created for the first time
+#
+# For gradle example check github.com/DiogoAluai/sdk-boost
+#
+# To adapt to other usages:
+#   - check comments starting with "--"
+#   - verify javadoc and sources jar are being generated
+#   - change repository name everywhere and jar location references
+#   - for maven wrapper creation run: mvn -N io.takari:maven:wrapper
+
+# -- NAME
+name: Maven Release Workflow
+
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  release:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      # -- JDK
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      # -- BUILD
+      - name: Build with Maven
+        run: ./mvnw package
+
+      #  -- REPO NAME RETRIEVAL
+      - name: Set release version
+        run: echo "REPO_NAME=$(./mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
+
+      #  -- VERSION RETRIEVAL
+      - name: Set release version
+        run: echo "RELEASE_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+
+      - name: Check if snapshot release exists
+        id: check_snapshot_release
+        uses: octokit/request-action@v2.3.1
+        with:
+          route: GET /repos/DiogoAluai/${{ env.REPO_NAME }}/releases/tags/v${{ env.RELEASE_VERSION }}-SNAPSHOT
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing snapshot release
+        if: steps.check_snapshot_release.outputs.status != '404'
+        run: |
+          release_id=$(echo '${{ steps.check_snapshot_release.outputs.data }}' | jq -r '.id')
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/$release_id
+
+      - name: Check if release exists
+        id: check_release
+        uses: octokit/request-action@v2.3.1
+        with:
+          route: GET /repos/DiogoAluai/${{ env.REPO_NAME }}/releases/tags/v${{ env.RELEASE_VERSION }}
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing release
+        if: steps.check_release.outputs.status != '404'
+        run: |
+          release_id=$(echo '${{ steps.check_release.outputs.data }}' | jq -r '.id')
+          curl -X DELETE \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/$release_id
+
+      - name: Create or update release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # -- UPLOADING NAMING DEPENDENT JARS
+      - name: Upload JAR to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}.jar
+          asset_name: ${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}.jar
+          asset_content_type: application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload sources to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}-sources.jar
+          asset_name: ${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}-sources.jar
+          asset_content_type: application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload javadoc to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}-javadoc.jar
+          asset_name: ${{ env.REPO_NAME }}-${{ env.RELEASE_VERSION }}-javadoc.jar
+          asset_content_type: application/java-archive
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
