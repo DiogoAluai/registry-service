@@ -1,13 +1,15 @@
 package daluai.services.registry_service;
 
-import daluai.lib.registry_api.Coms;
+import daluai.lib.network_utils.property.PropertyManager;
 import daluai.lib.services_parent.ApiKeyFilter;
 import org.springframework.stereotype.Component;
+
+import static daluai.lib.network_utils.property.PropertyKeys.API_KEY;
 
 @Component
 public class RegistryApiKeyFilter extends ApiKeyFilter {
     @Override
     protected String getApiKey() {
-        return Coms.API_KEY;
+        return PropertyManager.DEFAULT_INSTANCE.getProperty(API_KEY);
     }
 }
