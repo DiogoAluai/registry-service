@@ -1,6 +1,8 @@
 # Registry
 This registry serves as service name resolution. It stores services' information, such as port, protocol, and IP.
-It was created to solve a specific problem: where to find your service/device in a private network, where you have no configuration control and IPs keep changing.
+It was created to solve a specific problem: 
+Where to find your service/device in a private network, where you have no configuration control and IPs keep changing?
+
 Services can 'register' to the registry, and apps can access this information through the 'retrieve' endpoint. The endpoints are protected with an API_KEY, but it's vulnerable to [playback attacks](https://en.wikipedia.org/wiki/Replay_attack). 
 To retrieve information from the registry I've also created a [registry-client library](https://github.com/DiogoAluai/registry-client).
 
