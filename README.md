@@ -13,6 +13,10 @@ You'll also need to set environment variable "`COOL_REGISTRY_FLY_NAME`" with you
 This env will be used for both deploying to fly and to extrapolate url/location to be used by `RegistryClient`.
 After that, there's a `final.sh` script you can run to compile and deploy.
 
+Check fly.io installation documentation for flyctl, then:
+$ flyctl apps list # prompts for login, very intuitive
+
+
 ##### Explanation:
 Registry persists data to a file. Default file path is `/app_data/hashmap.ser`, and it works in conjunction with provided `fly.io` configuration. 
 When running locally, registry would try to create the folder but you require root privileges to do that. So you could run with sudo instead:  `sudo java -jar registry-service-2.0.0.jar`, but why risk it?

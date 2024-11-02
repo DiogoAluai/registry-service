@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo ""
+echo "[ERROR] Please update cool registry app name on the app_name.src file"
+echo "No name, no deployment"
+echo ""
+exit 1
+
+# Change name:
+export COOL_REGISTRY_FLY_NAME=""
