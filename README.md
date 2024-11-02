@@ -1,7 +1,7 @@
 # Registry
 This registry serves as service name resolution. It stores services' information, such as port, protocol, and IP.
 It was created to solve a specific problem: 
-Where can your service/device be found in a private network, when you have no configuration control and IPs keep changing?
+Where can your service/device be found in a private network, when you have no network configuration control and IPs keep changing?
 
 This registry is a solution to that problem. Services can 'register' to the registry, and apps can access this information through the 'retrieve' endpoint. The endpoints are protected with an API_KEY, but it's vulnerable to [playback attacks](https://en.wikipedia.org/wiki/Replay_attack). 
 To retrieve information from the registry I've also created a [registry-client library](https://github.com/DiogoAluai/registry-client).
@@ -13,9 +13,14 @@ You'll also need to set environment variable "`COOL_REGISTRY_FLY_NAME`" with you
 This env will be used for both deploying to fly and to extrapolate url/location to be used by `RegistryClient`.
 After that, there's a `final.sh` script you can run to compile and deploy.
 
+#### Deploying to fly.io
 Check fly.io installation documentation for flyctl, then:
 $ flyctl apps list # prompts for login, very intuitive
 
+Final script will be your friend. Registry requires a volume, which will be automatically created upon running the script.
+It will compile the java application locally (you may need to run it as "mvn -s $MAVEN_HOME/conf/settings.xml clean package"), and then copy this jar from the target folder to fly.io.
+Instead of compiling it locally, you can download it from github releases.
+$ final.sh
 
 ##### Explanation:
 Registry persists data to a file. Default file path is `/app_data/hashmap.ser`, and it works in conjunction with provided `fly.io` configuration. 
