@@ -38,7 +38,5 @@ A 'local' profile is added that changes filepath to `./app_data/hashmap.ser`.
 To run locally, just pass 'local' as spring profile. You can incorporate `LOCAL_INSTANCE` of `RegistryClient` in your apps.
 ```bash
 $ mvn package # compile
-
-# run
 $ java -jar -Dspring.profiles.active=local target/registry-service-2.0.0.jar # adapt jar name as needed
 ```
