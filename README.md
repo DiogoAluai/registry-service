@@ -15,11 +15,14 @@ After that, there's a `final.sh` script you can run to compile and deploy.
 
 #### Deploying to fly.io
 Check fly.io installation documentation for flyctl, then:
+
 $ flyctl apps list # prompts for login, very intuitive
 
+
 Final script will be your friend. Registry requires a volume, which will be automatically created upon running the script.
-It will compile the java application locally (you may need to run it as "mvn -s $MAVEN_HOME/conf/settings.xml clean package"), and then copy this jar from the target folder to fly.io.
+It will compile the java application locally (you may need to run it as "mvn -s \$MAVEN_HOME/conf/settings.xml clean package"), and then copy this jar from the target folder to fly.io.
 Instead of compiling it locally, you can download it from github releases.
+
 $ final.sh
 
 ##### Explanation:
