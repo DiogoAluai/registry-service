@@ -25,7 +25,9 @@ Final script will be your friend. Registry requires a volume, which will be auto
 It will compile the java application locally (you may need to run it as "mvn -s \$MAVEN_HOME/conf/settings.xml clean package"), and then copy this jar from the target folder to fly.io.
 Instead of compiling it locally, you can download it from github releases.
 
+```bash
 $ final.sh
+```
 
 ##### Explanation:
 Registry persists data to a file. Default file path is `/app_data/hashmap.ser`, and it works in conjunction with provided `fly.io` configuration. 
@@ -35,9 +37,8 @@ A 'local' profile is added that changes filepath to `./app_data/hashmap.ser`.
 #### Running locally
 To run locally, just pass 'local' as spring profile. You can incorporate `LOCAL_INSTANCE` of `RegistryClient` in your apps.
 ```bash
-# compile
-mvn package
+$ mvn package # compile
 
 # run
-java -jar -Dspring.profiles.active=local target/registry-service-2.0.0.jar # adapt jar name as needed
+$ java -jar -Dspring.profiles.active=local target/registry-service-2.0.0.jar # adapt jar name as needed
 ```
