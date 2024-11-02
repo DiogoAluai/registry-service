@@ -16,7 +16,9 @@ After that, there's a `final.sh` script you can run to compile and deploy.
 #### Deploying to fly.io
 Check fly.io installation documentation for flyctl, then:
 
+```bash
 $ flyctl apps list # prompts for login, very intuitive
+```
 
 
 Final script will be your friend. Registry requires a volume, which will be automatically created upon running the script.
