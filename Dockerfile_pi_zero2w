@@ -1,5 +1,14 @@
-# Use an OpenJDK base image
-FROM eclipse-temurin:25-jdk
+FROM --platform=linux/arm/v7 debian:trixie-slim
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get install -y \
+    ca-certificates \
+    wget \
+    tar \
+    gzip
+RUN apt-get install -y openjdk-25-jre-headless
 
 # Set the working directory in the Docker container
 WORKDIR /app
@@ -12,4 +21,3 @@ EXPOSE 8080
 
 # Command to run the application
 ENTRYPOINT ["java", "-jar", "/app/registry-spring-boot-application.jar"]
-

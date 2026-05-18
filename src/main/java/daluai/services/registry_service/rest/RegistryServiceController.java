@@ -1,4 +1,4 @@
-package daluai.services.registry_service;
+package daluai.services.registry_service.rest;
 
 
 import daluai.lib.network_utils.RequestResult;
@@ -6,6 +6,7 @@ import daluai.lib.registry_api.Coms;
 import daluai.lib.registry_api.Service;
 import daluai.lib.registry_api.ServiceType;
 import daluai.lib.services_parent.DaluaiServiceRestController;
+import daluai.services.registry_service.store.ServiceHashMapStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
 import java.util.HashMap;
 
 import static daluai.lib.registry_api.Coms.ENDPOINT_DEREGISTER;
@@ -24,27 +24,20 @@ import static daluai.lib.registry_api.Coms.ENDPOINT_REGISTER;
 import static daluai.lib.registry_api.Coms.ENDPOINT_RESET;
 import static daluai.lib.registry_api.Coms.ENDPOINT_RETRIEVE;
 import static daluai.lib.registry_api.Coms.ENDPOINT_RETRIEVE_ALL;
-import static daluai.lib.registry_api.Service.RELAYED_SERVICE_SUFFIX;
 
 /**
- * Registry.
- * <p/>
- * Relay aware registry, for fetching and storing Services' information, such as type and url.
+ * Registry
  */
 @RestController
 class RegistryServiceController extends DaluaiServiceRestController {
 
-    private static final String PROFILE_LOCAL = "local";
-
     private final static Logger LOG = LoggerFactory.getLogger(RegistryServiceController.class);
 
     private final ServiceHashMapStorage serviceRegistryMap;
-    private final Object lock = new Object();
 
     @Autowired
     public RegistryServiceController(Environment environment) {
-        boolean hasLocalProfile = Arrays.asList(environment.getActiveProfiles()).contains(PROFILE_LOCAL);
-        this.serviceRegistryMap = new ServiceHashMapStorage(hasLocalProfile);
+        this.serviceRegistryMap = new ServiceHashMapStorage();
     }
 
     @Override
@@ -54,31 +47,10 @@ class RegistryServiceController extends DaluaiServiceRestController {
 
     /**
      * Retrieves requested service.
-     * If not found it will check for relayed implementations, i.e. service with "-relay" suffix.
      */
     @GetMapping(ENDPOINT_RETRIEVE + "/{service}")
     public Service retrieve(@PathVariable String service) {
-        synchronized (lock) {
-            return retrieveService(service);
-        }
-    }
-
-    /**
-     * Retrieves requested service.
-     * If not found it will check for relayed implementations, i.e. service with "-relay" suffix.
-     */
-    private Service retrieveService(String service) {
-        Service result = serviceRegistryMap.get(service);
-        if (result != null) {
-            return result;
-        }
-        // ~ if service is not found, search for relayed implementation
-        return serviceRegistryMap.load()
-                .values()
-                .stream()
-                .filter(s -> s.name().contains(service) && s.name().contains(RELAYED_SERVICE_SUFFIX))
-                .findFirst()
-                .orElse(null);
+        return serviceRegistryMap.get(service);
     }
 
     /**
@@ -94,7 +66,7 @@ class RegistryServiceController extends DaluaiServiceRestController {
      */
     @PostMapping(ENDPOINT_REGISTER)
     public void register(@RequestBody Service service) {
-        LOG.info("Registering service: " + service);
+        LOG.info("Registering service: {}", service);
         serviceRegistryMap.put(service.name(), service);
     }
 
@@ -103,10 +75,8 @@ class RegistryServiceController extends DaluaiServiceRestController {
      */
     @GetMapping(ENDPOINT_DEREGISTER + "/{serviceName}")
     public void deregister(@PathVariable String serviceName) {
-        LOG.info("Registering service: " + serviceName);
-        synchronized (lock) {
-            serviceRegistryMap.remove(serviceName);
-        }
+        LOG.info("Deregistering service: {}", serviceName);
+        serviceRegistryMap.remove(serviceName);
     }
 
     /**
@@ -115,9 +85,7 @@ class RegistryServiceController extends DaluaiServiceRestController {
     @GetMapping(ENDPOINT_RESET)
     public RequestResult reset() {
         LOG.warn("Resetting registry");
-        synchronized (lock) {
-            serviceRegistryMap.clear();
-        }
+        serviceRegistryMap.clear();
         return RequestResult.OK;
     }
 
@@ -128,9 +96,7 @@ class RegistryServiceController extends DaluaiServiceRestController {
     public void test() {
         // asd, the new foo!
         Service testService = new Service("asd", "asd", "asd", "port", ServiceType.PRIVATE);
-        LOG.info("Registering service: " + testService);
-        synchronized (lock) {
-            serviceRegistryMap.put(testService.name(), testService);
-        }
+        LOG.info("Registering test service: {}", testService);
+        serviceRegistryMap.put(testService.name(), testService);
     }
 }
